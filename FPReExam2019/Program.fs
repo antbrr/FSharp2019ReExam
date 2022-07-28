@@ -214,6 +214,7 @@ let gOpt (s : string) =
 
 //3 : Golden ratio
 
+//3.1
 let rec calculateGoldenRatio (n: int) =
     let fib x =
         let rec aux x' a b =
@@ -223,9 +224,10 @@ let rec calculateGoldenRatio (n: int) =
         aux x 1 1 |>  float
     (fib (n + 1)) /( fib(n) )
 
-
+//3.2
 let grSeq = Seq.unfold(fun (a,b) -> Some(b/a, (b,a+b))) (1.0,1.0)
 
+//3.3
 let goldenRectangleSeq (x: float) =
     Seq.map(fun ratio -> (ratio * x) * x) grSeq
 let goldenTriangleSeq (x: float) =
@@ -233,7 +235,7 @@ let goldenTriangleSeq (x: float) =
         let height = x * sqrt((ratio* ratio) - (1.0/4.0))
         (x * height) / 2.0
         ) grSeq 
-
+//3.4
 let goldenRectangleTriangle (x: float) =
    seq {
     
