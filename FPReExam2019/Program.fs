@@ -1,31 +1,19 @@
 
 //1: Sum Types
 
-open System
-
 type Sum<'a, 'b> =
 | Left of 'a
 | Right of 'b
 
-
-// 1.1
-
-//Write two values of type Sum<int list, bool option>,
-//one should be defined using Left and
-//the other should be defined using Right.
-
+//1.1
 let first = Left [1;2;3]
 
 let second = Right (Some true)
 
-
-//Create a function sumMap : ('a -> 'c) -> ('b -> 'c) -> Sum<'a, 'b> -> 'c that given functions f, g and the sum s
-//returns f x when s = Left x and g y when s = Right y
-
-let sumMap f g s =
+let sumMap f g (s: Sum<'a,'b>) =
     match s with
-    | Left x -> f x
-    | Right y -> g y
+    | Left a -> f a
+    | Right b -> g b
     
 //1.2
 
@@ -33,50 +21,42 @@ type SumColl<'a, 'b> =
 | Nil
 | CLeft of 'a * SumColl<'a, 'b>
 | CRight of 'b * SumColl<'a, 'b>
-
-let value = CLeft ([true;false],CRight(3,Nil))
+let value = CLeft([true;false;true],CRight(1,Nil))
 
 let rec ofList (lst: Sum<'a,'b> list) =
     match lst with
     | [] -> Nil
-    | Left x :: xs -> CLeft(x,ofList xs)
-    | Right y :: ys -> CRight(y, ofList ys)
-    
+    | Left x :: xs -> CLeft(x, ofList xs)
+    | Right x :: xs -> CRight(x, ofList xs)
+
 //1.3
 
 let reverse (coll: SumColl<'a,'b>) =
     let rec aux acc coll' =
         match coll' with
         | Nil -> acc
-        | CLeft(value, next) -> aux (CLeft(value,acc)) next
-        | CRight(value, next) -> aux (CRight(value,acc)) next
+        | CLeft(x, xs) -> aux (CLeft(x,acc)) xs
+        | CRight(x, xs) -> aux (CRight(x,acc)) xs
     aux Nil coll
-
-
-
-let tailList (lst: Sum<'a,'b> list) =
-   let rec aux acc lst' =
-        match lst' with
-        | [] -> acc
-        | Left x :: xs -> CLeft(x,aux acc xs)
-        | Right y :: ys -> CRight(y,aux acc ys)
-   aux Nil lst
-
+    
 //1.4
-let ofList2 lst =
-    List.foldBack(fun elem acc ->
+
+let ofList2 (lst: Sum<'a,'b> list) =
+    List.foldBack(
+    fun elem acc ->
     match elem with
     | Left x -> CLeft(x,acc)
-    | Right y-> CRight(y,acc)) lst Nil
-    
-//1.5
+    | Right y -> CRight(y,acc))
+        lst Nil
 
+//1.5
 let coll = CLeft ("Hello", (CRight ([1; 2; 3], (CRight ([42], Nil)))))
+
 let rec foldBackSumColl f g (coll: SumColl<'a,'b>) acc =
     match coll with
     | Nil -> acc
-    | CLeft(elem, next) -> f elem (foldBackSumColl f g next acc)
-    | CRight(elem, next) -> g elem (foldBackSumColl f g next acc)
+    | CLeft(x, xs) -> f x (foldBackSumColl f g xs acc)
+    | CRight(x, xs)-> g x (foldBackSumColl f g xs acc)
     
 //2: Code Comprehension
 
@@ -120,7 +100,7 @@ let g s =
 
 //2.2 Create a function f2 that behaves the same as f but which uses list comprehension.
 
-let f2 (s: string) = List.ofSeq s
+let f2 (s: string) = seq {for c in s do yield c}
 
 //2.3
 //The function g uses the piping operator (|>) to join the building blocks of the function.
@@ -152,21 +132,24 @@ and reason about that evaluation.
 You need to make clear what aspects of the evaluation tell you that the function is tail recursive and you need to 
 have at least one evaluation step per function call, recursive or otherwise.
 
-The function f is not tail recursive because it needs to wait on the recursive calls to the aux function, 
-before it can compute any values.
+(*
 
-Lets call f with the string "Lol"
+f "Anton"
 
-s.[0] :: aux(0 + 1)
+'A' :: aux (i + 1) ->
 
-s.[0] :: aux(0+1(s.[1] :: aux( 1 + 1)
+'A' :: 'n' :: aux(i + 1) ->
 
-s.[0] :: aux(0+1(s.[1] :: aux( 1 + 1(s.[2] :: aux( 2 + 1)
+'A' :: 'n' :: 't' :: aux(i + 1) ->
 
-s.[0] :: aux(0+1(s.[1] :: aux( 1 + 1(s.[2] :: []
+'A' :: 'n' :: 't' :: 'o' :: aux( i + 1) ->
 
-[L;o;l]
+'A' :: 'n' :: 't' :: 'o' :: 'n' :: []
 
+['A';'n';'t';'o';'n']
+
+As the derivation shows this function is not tail recursive as it has to wait on its recurisve calls and can only construct the list at the very end.
+*)
 
 
 
